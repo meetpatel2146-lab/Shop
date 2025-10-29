@@ -136,42 +136,70 @@
 
   <footer>© 2025 My Shop | All Rights Reserved</footer>
 
-  <script>
-    let products = [];
+  <!-- ✅ Firebase Script -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-    function loadProducts() {
-      products = JSON.parse(localStorage.getItem("products") || "[]");
-      displayProducts(products);
+    // 🔥 Your Firebase Configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyC7Gc6LI3kelRNkYFhdmn4rJmfCXiATT6I",
+      authDomain: "shop-web-233bc.firebaseapp.com",
+      projectId: "shop-web-233bc",
+      storageBucket: "shop-web-233bc.firebasestorage.app",
+      messagingSenderId: "157576325091",
+      appId: "1:157576325091:web:549dd41109a7e8ef11e2d6",
+      measurementId: "G-XJKFFTSVMZ"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    let allProducts = [];
+
+    // 🧩 Load Products from Firestore
+    async function loadProducts() {
+      const productList = document.getElementById("productList");
+      productList.innerHTML = "<h3>Loading products...</h3>";
+
+      const querySnapshot = await getDocs(collection(db, "products"));
+      allProducts = [];
+      querySnapshot.forEach((doc) => {
+        allProducts.push(doc.data());
+      });
+
+      displayProducts(allProducts);
     }
 
-    function displayProducts(list) {
-      const container = document.getElementById("productList");
-      if (list.length === 0) {
-        container.innerHTML = "<h2>No products available</h2>";
+    // 🖼️ Display Products
+    function displayProducts(products) {
+      const productList = document.getElementById("productList");
+      if (products.length === 0) {
+        productList.innerHTML = "<h2>No products found</h2>";
         return;
       }
 
-      container.innerHTML = "";
-      list.forEach((p) => {
-        container.innerHTML += `
-          <div class="product">
-            <img src="${p.image}" alt="${p.name}">
-            <div class="info">
-              <h3>${p.name}</h3>
-              <p>₹${p.price}</p>
-              <button class="buy-btn">Buy Now</button>
-            </div>
+      productList.innerHTML = products.map(p => `
+        <div class="product">
+          <img src="${p.image}" alt="${p.name}">
+          <div class="info">
+            <h3>${p.name}</h3>
+            <p>₹${p.price}</p>
+            <button class="buy-btn">Buy Now</button>
           </div>
-        `;
-      });
+        </div>
+      `).join('');
     }
 
-    function filterProducts() {
+    // 🔍 Search Filter
+    window.filterProducts = function() {
       const search = document.getElementById("searchBar").value.toLowerCase();
-      const filtered = products.filter(p => p.name.toLowerCase().includes(search));
+      const filtered = allProducts.filter(p => p.name.toLowerCase().includes(search));
       displayProducts(filtered);
     }
 
+    // 🚀 Load products when page opens
     loadProducts();
   </script>
 </body>
