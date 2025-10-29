@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - My Store</title>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #f5f6f9;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background-color: #232f3e;
+      color: white;
+      text-align: center;
+      padding: 15px;
+      font-size: 24px;
+    }
+
+    .container {
+      max-width: 400px;
+      margin: 40px auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+    }
+
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+
+    button {
+      background-color: #ff9900;
+      border: none;
+      cursor: pointer;
+      color: white;
+      font-weight: bold;
+    }
+
+    button:hover {
+      background-color: #e68a00;
+    }
+
+    .product {
+      background: #fff;
+      border-radius: 8px;
+      padding: 10px;
+      margin: 10px 0;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    img {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <header>🛒 Admin Panel - Add Products</header>
+  <div class="container">
+    <input type="password" id="adminPass" placeholder="Enter Admin Password">
+    <button onclick="checkLogin()">Login</button>
+
+    <div id="adminArea" style="display:none;">
+      <h3>Add Product</h3>
+      <input type="text" id="name" placeholder="Product Name">
+      <input type="number" id="price" placeholder="Price (₹)">
+      <input type="file" id="imageFile" accept="image/*">
+      <button onclick="addProduct()">Add Product</button>
+
+      <h3>Product List</h3>
+      <div id="productList"></div>
+      <button onclick="clearAll()">Clear All Products</button>
+    </div>
+  </div>
+
+  <script>
+    const PASSWORD = "1234"; // Change this to your own password
+
+    function checkLogin() {
+      const pass = document.getElementById("adminPass").value;
+      if (pass === PASSWORD) {
+        document.getElementById("adminArea").style.display = "block";
+      } else {
+        alert("Wrong password!");
+      }
+    }
+
+    function addProduct() {
+      const name = document.getElementById("name").value;
+      const price = document.getElementById("price").value;
+      const fileInput = document.getElementById("imageFile");
+      const file = fileInput.files[0];
+
+      if (!name || !price || !file) {
+        alert("Please fill all fields and select an image");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const image = e.target.result;
+        const products = JSON.parse(localStorage.getItem("products") || "[]");
+        products.push({ name, price, image });
+        localStorage.setItem("products", JSON.stringify(products));
+        alert("✅ Product added successfully!");
+        loadProducts();
+        document.getElementById("name").value = "";
+        document.getElementById("price").value = "";
+        document.getElementById("imageFile").value = "";
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function loadProducts() {
+      const products = JSON.parse(localStorage.getItem("products") || "[]");
+      const list = document.getElementById("productList");
+      list.innerHTML = "";
+      products.forEach((p, i) => {
+        list.innerHTML += `
+          <div class="product">
+            <img src="${p.image}">
+            <div>
+              <b>${p.name}</b><br>₹${p.price}
+            </div>
+            <button onclick="deleteProduct(${i})">❌</button>
+          </div>`;
+      });
+    }
+
+    function deleteProduct(index) {
+      const products = JSON.parse(localStorage.getItem("products"));
+      products.splice(index, 1);
+      localStorage.setItem("products", JSON.stringify(products));
+      loadProducts();
+    }
+
+    function clearAll() {
+      localStorage.removeItem("products");
+      loadProducts();
+    }
+
+    loadProducts();
+  </script>
+</body>
+</html>
