@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Online Store</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: #f4f6f8;
+    }
+
+    /* 🔹 Navbar */
+    header {
+      background-color: #232f3e;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 30px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+
+    header h1 {
+      font-size: 22px;
+      letter-spacing: 1px;
+    }
+
+    #searchBar {
+      width: 300px;
+      padding: 8px 10px;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+
+    /* 🔹 Product Grid */
+    #productList {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 25px;
+      padding: 40px;
+      justify-items: center;
+    }
+
+    .product {
+      background: white;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 250px;
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .product:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .product img {
+      width: 100%;
+      height: 220px;
+      object-fit: cover;
+      border-radius: 12px 12px 0 0;
+    }
+
+    .info {
+      padding: 15px;
+    }
+
+    .info h3 {
+      font-size: 18px;
+      color: #232f3e;
+      margin-bottom: 6px;
+    }
+
+    .info p {
+      color: #007600;
+      font-weight: 600;
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+
+    .buy-btn {
+      background: #ff9900;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .buy-btn:hover {
+      background: #e68a00;
+    }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      background: #232f3e;
+      color: white;
+      font-size: 14px;
+      margin-top: 40px;
+    }
+
+    @media (max-width: 600px) {
+      #searchBar {
+        width: 100%;
+        margin-top: 10px;
+      }
+
+      header {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🛍️ My Online Store</h1>
+    <input type="text" id="searchBar" placeholder="Search products..." oninput="filterProducts()">
+  </header>
+
+  <div id="productList"></div>
+
+  <footer>© 2025 My Shop | All Rights Reserved</footer>
+
+  <script>
+    let products = [];
+
+    function loadProducts() {
+      products = JSON.parse(localStorage.getItem("products") || "[]");
+      displayProducts(products);
+    }
+
+    function displayProducts(list) {
+      const container = document.getElementById("productList");
+      if (list.length === 0) {
+        container.innerHTML = "<h2>No products available</h2>";
+        return;
+      }
+
+      container.innerHTML = "";
+      list.forEach((p) => {
+        container.innerHTML += `
+          <div class="product">
+            <img src="${p.image}" alt="${p.name}">
+            <div class="info">
+              <h3>${p.name}</h3>
+              <p>₹${p.price}</p>
+              <button class="buy-btn">Buy Now</button>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    function filterProducts() {
+      const search = document.getElementById("searchBar").value.toLowerCase();
+      const filtered = products.filter(p => p.name.toLowerCase().includes(search));
+      displayProducts(filtered);
+    }
+
+    loadProducts();
+  </script>
+</body>
+</html>
