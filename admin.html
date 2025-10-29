@@ -3,51 +3,60 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>My Online Shop</title>
+  <title>Admin Panel - Add Product</title>
   <style>
     body {
       font-family: Poppins, sans-serif;
-      background: #f8f9fa;
-      padding: 20px;
+      background: #f2f2f2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px;
     }
-    h1 {
-      text-align: center;
-      color: #222;
-    }
-    #product-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 20px;
-      margin-top: 30px;
-    }
-    .product {
+    h1 { color: #333; }
+    form {
       background: white;
+      padding: 20px;
       border-radius: 10px;
-      padding: 15px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      text-align: center;
-      transition: transform 0.2s;
+      width: 300px;
     }
-    .product:hover { transform: scale(1.03); }
-    img {
+    input, textarea {
       width: 100%;
-      height: 200px;
-      object-fit: cover;
-      border-radius: 10px;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: 1px solid #ccc;
     }
-    h3 { margin: 10px 0 5px; color: #333; }
-    p { color: #777; font-size: 14px; }
-    span { color: #007bff; font-weight: bold; }
+    button {
+      background-color: #007bff;
+      color: white;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+    }
+    button:hover { background-color: #0056b3; }
   </style>
 </head>
 <body>
-  <h1>🛒 My Online Shop</h1>
-  <div id="product-list">Loading products...</div>
+  <h1>🛍️ Admin - Add Product</h1>
+  <form id="productForm">
+    <input type="text" id="name" placeholder="Product Name" required />
+    <input type="number" id="price" placeholder="Price" required />
+    <input type="file" id="image" accept="image/*" required />
+    <textarea id="description" placeholder="Description"></textarea>
+    <button type="submit">Add Product</button>
+  </form>
 
   <script type="module">
+    // ✅ Import Firebase modules directly from CDN
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
+    // ✅ Your Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyC7Gc6LI3kelRNkYFhdmn4rJmfCXiATT6I",
       authDomain: "shop-web-233bc.firebaseapp.com",
@@ -58,26 +67,38 @@
       measurementId: "G-XJKFFTSVMZ"
     };
 
+    // ✅ Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const storage = getStorage(app);
 
-    async function loadProducts() {
-      const querySnapshot = await getDocs(collection(db, "products"));
-      const list = document.getElementById("product-list");
-      list.innerHTML = "";
-      querySnapshot.forEach((doc) => {
-        const p = doc.data();
-        list.innerHTML += `
-          <div class="product">
-            <img src="${p.image}" alt="${p.name}">
-            <h3>${p.name}</h3>
-            <p>${p.description}</p>
-            <span>₹${p.price}</span>
-          </div>
-        `;
-      });
-    }
-    loadProducts();
+    // ✅ Handle form submission
+    document.getElementById("productForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const name = document.getElementById("name").value;
+      const price = parseFloat(document.getElementById("price").value);
+      const description = document.getElementById("description").value;
+      const imageFile = document.getElementById("image").files[0];
+
+      if (!imageFile) return alert("Please choose an image!");
+
+      try {
+        // Upload image to Firebase Storage
+        const imageRef = ref(storage, "products/" + imageFile.name);
+        await uploadBytes(imageRef, imageFile);
+        const imageUrl = await getDownloadURL(imageRef);
+
+        // Save product data to Firestore
+        await addDoc(collection(db, "products"), { name, price, description, image: imageUrl });
+        alert("✅ Product added successfully!");
+
+        document.getElementById("productForm").reset();
+      } catch (error) {
+        console.error("Error adding product:", error);
+        alert("❌ Failed to add product. Check console for details.");
+      }
+    });
   </script>
 </body>
 </html>
