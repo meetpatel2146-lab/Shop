@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Panel - Add Products</title>
   <style>
     body {
@@ -22,14 +22,12 @@
       padding: 20px;
       border-radius: 10px;
     }
-    input, button {
+    input, textarea, button {
       width: 100%;
       padding: 10px;
       margin-top: 10px;
       border-radius: 8px;
       border: none;
-    }
-    input {
       background: #0d1117;
       color: white;
     }
@@ -42,23 +40,18 @@
     button:hover {
       background: #00ffaa;
     }
-    .product-list {
+    .product-preview {
       margin-top: 20px;
-    }
-    .product-item {
-      display: flex;
-      align-items: center;
       background: #21262d;
       padding: 10px;
       border-radius: 10px;
-      margin-bottom: 10px;
     }
-    .product-item img {
-      width: 60px;
-      height: 60px;
+    .product-preview img {
+      width: 80px;
+      height: 80px;
+      border-radius: 8px;
       object-fit: cover;
       margin-right: 10px;
-      border-radius: 5px;
     }
   </style>
 </head>
@@ -66,78 +59,75 @@
 
   <h1>Admin Panel</h1>
 
-  <div class="container" id="login-section">
-    <h3>Enter Admin Password</h3>
-    <input type="password" id="password" placeholder="Enter password" />
-    <button onclick="login()">Login</button>
-  </div>
-
-  <div class="container" id="admin-section" style="display:none;">
-    <h3>Add New Product</h3>
-    <input type="text" id="productName" placeholder="Product Name" />
-    <input type="number" id="productPrice" placeholder="Price (₹)" />
-    <input type="file" id="productImage" accept="image/*" />
+  <div class="container">
+    <h3>Add Product</h3>
+    <input type="text" id="name" placeholder="Product Name">
+    <input type="text" id="price" placeholder="Price (₹)">
+    <textarea id="desc" placeholder="Description"></textarea>
+    <input type="file" id="imageInput" accept="image/*">
     <button onclick="addProduct()">Add Product</button>
+    <button onclick="downloadJSON()">Download JSON</button>
 
-    <div class="product-list" id="productList"></div>
+    <div id="preview" class="product-preview"></div>
   </div>
 
   <script>
-    const PASSWORD = "1234"; // change this to your secret password
-
-    function login() {
-      const pass = document.getElementById("password").value;
-      if (pass === PASSWORD) {
-        document.getElementById("login-section").style.display = "none";
-        document.getElementById("admin-section").style.display = "block";
-        loadProducts();
-      } else {
-        alert("Wrong password!");
-      }
-    }
+    let products = [];
 
     function addProduct() {
-      const name = document.getElementById("productName").value;
-      const price = document.getElementById("productPrice").value;
-      const imageInput = document.getElementById("productImage");
-      if (!name || !price || !imageInput.files[0]) {
-        alert("Please fill all fields and select an image!");
+      const name = document.getElementById("name").value;
+      const price = document.getElementById("price").value;
+      const desc = document.getElementById("desc").value;
+      const imageInput = document.getElementById("imageInput");
+
+      if (!name || !price || !desc || !imageInput.files[0]) {
+        alert("Please fill all fields!");
         return;
       }
 
       const reader = new FileReader();
       reader.onload = function(e) {
-        const imageURL = e.target.result;
-
-        let products = JSON.parse(localStorage.getItem("products")) || [];
-        products.push({ name, price, image: imageURL });
-        localStorage.setItem("products", JSON.stringify(products));
-
-        alert("Product added successfully!");
-        loadProducts();
-        document.getElementById("productName").value = "";
-        document.getElementById("productPrice").value = "";
-        document.getElementById("productImage").value = "";
+        const newProduct = {
+          name: name,
+          price: "₹" + price,
+          description: desc,
+          image: e.target.result
+        };
+        products.push(newProduct);
+        showPreview();
       };
       reader.readAsDataURL(imageInput.files[0]);
     }
 
-    function loadProducts() {
-      const productList = document.getElementById("productList");
-      productList.innerHTML = "";
-      const products = JSON.parse(localStorage.getItem("products")) || [];
-      products.forEach((p, index) => {
-        const div = document.createElement("div");
-        div.classList.add("product-item");
-        div.innerHTML = `
-          <img src="${p.image}" alt="${p.name}">
-          <div>
-            <strong>${p.name}</strong><br>₹${p.price}
+    function showPreview() {
+      const preview = document.getElementById("preview");
+      preview.innerHTML = "<h3>Product List</h3>";
+      products.forEach(p => {
+        preview.innerHTML += `
+          <div style='display:flex;align-items:center;margin:10px 0;'>
+            <img src="${p.image}">
+            <div>
+              <strong>${p.name}</strong><br>
+              ${p.description}<br>
+              <span>${p.price}</span>
+            </div>
           </div>
         `;
-        productList.appendChild(div);
       });
     }
+
+    function downloadJSON() {
+      if (products.length === 0) {
+        alert("No products to download!");
+        return;
+      }
+      const blob = new Blob([JSON.stringify(products, null, 2)], {type: "application/json"});
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "products.json";
+      link.click();
+    }
   </script>
+
 </body>
 </html>
